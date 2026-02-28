@@ -25,17 +25,20 @@ Usage:
   cc-weekly-report --days 14          # last 14 days
   cc-weekly-report --dir ~/my-logs    # custom log dir
   cc-weekly-report --week 2026-02-22  # week starting on date
+  cc-weekly-report --yesterday        # yesterday only, tweet-ready summary
+  cc-weekly-report --format tweet     # compact tweet-length output
 
 Output: Markdown report to stdout
   cc-weekly-report > weekly-report.md
 
 Options:
-  --days N       Number of days to include (default: 7)
-  --dir PATH     Proof-log directory (default: ~/ops/proof-log)
-  --week DATE    Start date for report (YYYY-MM-DD)
-  --no-color     Plain text output (no ANSI colors in terminal preview)
-  --version      Show version
-  --help         Show this help
+  --days N         Number of days to include (default: 7)
+  --dir PATH       Proof-log directory (default: ~/ops/proof-log)
+  --week DATE      Start date for report (YYYY-MM-DD)
+  --yesterday      Show yesterday only, short summary (good for daily tweets)
+  --format tweet   Output tweet-length summary (280 chars) instead of full report
+  --version        Show version
+  --help           Show this help
 `);
   process.exit(0);
 }
@@ -46,8 +49,12 @@ if (args.includes('--version')) {
   process.exit(0);
 }
 
+const isYesterday = args.includes('--yesterday');
+const formatIdx = args.indexOf('--format');
+const outputFormat = formatIdx >= 0 ? args[formatIdx + 1] : (isYesterday ? 'tweet' : 'markdown');
+
 const daysIdx = args.indexOf('--days');
-const numDays = daysIdx >= 0 ? parseInt(args[daysIdx + 1], 10) : DEFAULT_DAYS;
+const numDays = isYesterday ? 1 : (daysIdx >= 0 ? parseInt(args[daysIdx + 1], 10) : DEFAULT_DAYS);
 
 const dirIdx = args.indexOf('--dir');
 const logDir = dirIdx >= 0
@@ -63,9 +70,21 @@ function toYMD(date) {
   return date.toISOString().slice(0, 10);
 }
 
-function dateRange(days, startDate = null) {
-  const end = startDate ? new Date(startDate) : new Date();
-  end.setHours(23, 59, 59);
+function dateRange(days, startDate = null, yesterday = false) {
+  const now = new Date();
+  let end;
+  if (yesterday) {
+    // Yesterday: end = yesterday 23:59
+    end = new Date(now);
+    end.setDate(now.getDate() - 1);
+    end.setHours(23, 59, 59);
+  } else if (startDate) {
+    end = new Date(startDate);
+    end.setHours(23, 59, 59);
+  } else {
+    end = new Date(now);
+    end.setHours(23, 59, 59);
+  }
   const dates = [];
   for (let i = 0; i < days; i++) {
     const d = new Date(end);
@@ -166,7 +185,9 @@ function parseProofLog(content, dateStr) {
 
 const dates = weekStart
   ? dateRange(numDays, weekStart)
-  : dateRange(numDays);
+  : isYesterday
+    ? dateRange(1, null, true)
+    : dateRange(numDays);
 
 const allSessions = [];
 
@@ -253,6 +274,35 @@ const topFiles = Object.entries(allFiles)
 
 const startDateStr = dates[0];
 const endDateStr = dates[dates.length - 1];
+
+// Tweet format: compact summary for social media
+if (outputFormat === 'tweet') {
+  const isGhostDay = activeDays > 0 && totalSessions > 0 && !byDate[endDateStr]?.projects?.size;
+  const topProject = sortedProjects[0];
+  const dateLabel = isYesterday ? endDateStr : `${startDateStr}–${endDateStr}`;
+  const ghostNote = (isYesterday && !byDate[endDateStr]) ? ' 👻 Ghost Day — you were away' : '';
+
+  const tweetLines = [
+    `AI Daily Report (${dateLabel})${ghostNote}`,
+    ``,
+    `🔄 Sessions: ${totalSessions}`,
+    `⏱ Time: ${fmtHours(totalMinutes)}`,
+    `📝 Lines: +${totalLinesAdded.toLocaleString()}`,
+    `📁 Files: ${totalFiles}`,
+  ];
+  if (topProject) {
+    tweetLines.push(`🎯 Top: ${topProject[0]} (${fmtHoursShort(topProject[1].minutes)})`);
+  }
+
+  const tweet = tweetLines.join('\n');
+  if (tweet.length > 280) {
+    // Trim to fit in 280 chars
+    console.log(tweet.substring(0, 277) + '...');
+  } else {
+    console.log(tweet);
+  }
+  process.exit(0);
+}
 
 const lines = [];
 

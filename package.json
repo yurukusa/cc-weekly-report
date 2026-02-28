@@ -1,6 +1,6 @@
 {
   "name": "cc-weekly-report",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Generate a weekly AI activity report from Claude Code proof-log files.",
   "bin": {
     "cc-weekly-report": "cli.mjs"
