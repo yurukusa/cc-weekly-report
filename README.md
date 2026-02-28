@@ -78,14 +78,18 @@ Expects files named `YYYY-MM-DD.md` with session entries in this format:
 
 This format is produced automatically by the Claude Code proof-log hooks in [cc-loop](https://github.com/yurukusa/cc-loop).
 
-## Related tools
+## Part of cc-toolkit
+
+cc-weekly-report is one of 27 free tools for Claude Code users.
+
+**→ [See all 27 tools at yurukusa.github.io/cc-toolkit](https://yurukusa.github.io/cc-toolkit/)**
 
 | Tool | What it measures |
 |------|-----------------|
 | [cc-session-stats](https://github.com/yurukusa/cc-session-stats) | How much time you spend with AI (from session transcripts) |
 | [cc-agent-load](https://github.com/yurukusa/cc-agent-load) | Ghost Days, activity calendar |
 | [cc-audit-log](https://github.com/yurukusa/cc-audit-log) | What your AI actually did |
-| [cc-weekly-report](https://github.com/yurukusa/cc-weekly-report) | Weekly activity summary from proof-log |
+| **cc-weekly-report** | Weekly activity summary from proof-log |
 
 ## License
 
