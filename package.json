@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "Generate a weekly AI activity report from Claude Code proof-log files.",
   "bin": {
-    "cc-weekly-report": "./cli.mjs"
+    "cc-weekly-report": "cli.mjs"
   },
   "type": "module",
   "keywords": [
@@ -21,7 +21,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/yurukusa/cc-weekly-report"
+    "url": "git+https://github.com/yurukusa/cc-weekly-report.git"
   },
   "engines": {
     "node": ">=18"
